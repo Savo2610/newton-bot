@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NewtonBot Control</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='7' fill='%234de2ff'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%23ffb547' stroke-width='2' transform='rotate(-25 16 16)'/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="6.5" fill="var(--cyan)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="var(--amber)" stroke-width="2" transform="rotate(-25 16 16)"/></svg>
+    <div><strong>NewtonBot</strong><span class="sub">Chaos Bot-Meisterschaft</span></div>
+  </div>
+  <div class="pills">
+    <span class="pill" id="pillConn"><i></i><b>offline</b></span>
+    <span class="pill neutral" id="pillId">ID –</span>
+    <span class="pill neutral" id="pillModel">Modell –</span>
+    <span class="pill neutral" id="pillRound">Runde –</span>
+    <span class="pill neutral" id="pillNet">Netz …</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><span>Kills</span><b id="kKills">0</b></div>
+    <div class="kpi"><span>Tode</span><b id="kDeaths">0</b></div>
+    <div class="kpi"><span>Schüsse</span><b id="kShots">0</b></div>
+    <div class="kpi"><span>Trefferquote</span><b id="kAcc">–</b></div>
+  </div>
+</header>
+
+<nav class="controlbar" aria-label="Steuerung">
+  <button class="cbtn go" id="cbFire"><span class="ico">▶</span><span class="lbl">Start</span></button>
+  <div class="tempo" id="segTempo" role="group" aria-label="Tempo">
+    <button data-v="chill" title="Ein Schuss alle ~6 s, nur einer gleichzeitig">Gemütlich</button>
+    <button data-v="normal" title="Höchstens alle 2 s, max. 2 gleichzeitig">Normal</button>
+    <button data-v="turbo" title="So schnell wie Energie und Rate-Limit erlauben">Turbo</button>
+  </div>
+  <div class="cb-right">
+    <button class="cbtn" id="cbConn" title="Mit dem Spielserver verbinden / trennen"><span class="ico">⏻</span><span class="lbl">Verbinden</span></button>
+    <button class="cbtn" id="cbReconnect" title="Verbindung neu aufbauen (Server sperrt danach ~10 s)"><span class="ico">⟳</span><span class="lbl">Neu verbinden</span></button>
+    <button class="cbtn warn" id="cbRestart" title="Bot-Programm komplett neu starten"><span class="ico">↻</span><span class="lbl">Neustart</span></button>
+    <button class="cbtn danger" id="cbQuit" title="Bot komplett beenden (Netzwerk wird zurückgesetzt)"><span class="ico">⏻</span><span class="lbl">Beenden</span></button>
+  </div>
+</nav>
+<div class="netbanner" id="netBanner" hidden>
+  <div class="nb-text"><b id="nbTitle"></b><span id="nbText"></span></div>
+  <button class="cbtn" id="nbAction" hidden>Feste IP einrichten</button>
+</div>
+
+<main class="layout">
+  <section class="stage">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="field"></canvas>
+      <div class="hud tl">
+        <div class="meter"><label>Energie</label><div class="bar"><i id="energyBar"></i></div><b id="energyVal">–</b></div>
+        <div class="meter"><label>Byte-Budget</label><div class="bar budget"><i id="budgetBar"></i></div><b id="budgetVal">–</b></div>
+      </div>
+      <div class="hud tr" id="hover">–</div>
+      <div class="hud bl legend">
+        <span><i class="dot me"></i>ich</span><span><i class="dot enemy"></i>Gegner</span><span><i class="line plan"></i>Plan</span><span><i class="line own"></i>eigene Bahn</span><span><i class="dot planet"></i>Planet (geschätzt)</span>
+      </div>
+      <div class="hud br">
+        <label class="mini"><input type="checkbox" id="optTrails" checked> Bahnen</label>
+        <label class="mini"><input type="checkbox" id="optField"> Schwerefeld</label>
+        <label class="mini"><input type="checkbox" id="optDebris"> Trümmer</label>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card plan-card">
+        <h3>Feuerleitung <span class="muted small" style="text-transform:none;letter-spacing:0">beste Lösung je Ziel</span></h3>
+        <div class="plan-main" id="planMain"><span class="muted">kein Plan</span></div>
+        <table class="cands"><thead><tr><th>Ziel</th><th>Winkel</th><th>v</th><th>Fenster</th><th>Flug</th><th>p</th></tr></thead><tbody id="candBody"></tbody></table>
+        <div class="muted small" id="aimInfo"></div>
+      </div>
+      <div class="card log-card">
+        <h3>Log <span class="filters"><button class="chip on" data-f="all">alle</button><button class="chip" data-f="shot">Schüsse</button><button class="chip" data-f="warn">Warnungen</button></span></h3>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="card">
+      <h3>Verbindung</h3>
+      <div class="grid2">
+        <label>Host<input id="cHost" value="192.168.8.8" spellcheck="false"></label>
+        <label>Port<input id="cPort" type="number" value="3490"></label>
+      </div>
+      <label>Bot-Name<input id="cName" maxlength="15" spellcheck="false"></label>
+      <div class="btnrow">
+        <button class="btn primary" id="btnConnect">Verbinden</button>
+        <button class="btn" id="btnDisconnect">Trennen</button>
+      </div>
+      <div class="muted small" id="connInfo"></div>
+      <details>
+        <summary>Rate-Limit</summary>
+        <div class="grid2">
+          <label>Refill (B/s)<input id="cRefill" type="number" step="0.5" min="1" max="60"></label>
+          <label>Reserve (B)<input id="cReserve" type="number" step="5" min="0" max="400"></label>
+        </div>
+        <p class="muted small">Server: 512-Byte-Bucket, +1 Byte alle 3 Frames (~20 B/s). Wird bei vermutetem Rate-Kick automatisch gesenkt. Nach jedem Verbindungsversuch ist die IP ~10 s gesperrt, nur 1 Verbindung pro IP.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>Autopilot</h3>
+      <div class="toggles">
+        <label class="switch"><input type="checkbox" id="tAuto"><span></span>Auto-Feuer</label>
+        <label class="switch"><input type="checkbox" id="tExplore"><span></span>Erkunden</label>
+        <label class="switch"><input type="checkbox" id="tSalvo"><span></span>Salve</label>
+      </div>
+      <div class="seg" id="segTarget">
+        <button data-v="auto">Auto</button><button data-v="leader">Leader</button><button data-v="nearest">Nächster</button><button data-v="fixed">Fix</button>
+      </div>
+      <div class="muted small" id="fixedInfo"></div>
+      <label class="range">Geschwindigkeit <b id="vRangeVal"></b>
+        <div class="dual"><input type="range" id="vMin" min="1" max="50" step="1"><input type="range" id="vMax" min="1" max="50" step="1"></div>
+      </label>
+      <label class="range">Max. Flugzeit <b id="flightVal"></b><input type="range" id="flight" min="2" max="33" step="1"></label>
+      <label class="range">Min. Trefferwahrsch. <b id="phitVal"></b><input type="range" id="phit" min="0.05" max="0.95" step="0.05"></label>
+      <label class="range">Zeit vs. Energie <b id="twVal"></b><input type="range" id="tw" min="0" max="5" step="0.25"></label>
+    </div>
+
+    <div class="card">
+      <h3>Planetenmodell</h3>
+      <div class="model-q"><div class="bar q"><i id="qBar"></i></div><b id="qVal">–</b></div>
+      <dl class="kv" id="modelKv"></dl>
+      <div class="btnrow">
+        <button class="btn" id="btnRefit">Neu fitten</button>
+        <button class="btn danger" id="btnResetModel">Modell verwerfen</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Spieler</h3>
+      <div class="players" id="players"></div>
+    </div>
+
+    <div class="card">
+      <h3>Manuell</h3>
+      <div class="grid2">
+        <label>Winkel (°, math.)<input id="mAngle" type="number" step="0.1" value="0"></label>
+        <label>Geschw.<input id="mVel" type="number" step="0.5" value="8" min="0" max="50"></label>
+      </div>
+      <div class="btnrow"><button class="btn amber" id="btnFire">Feuer</button></div>
+      <p class="muted small">Shift+Klick ins Feld setzt den Winkel in Klickrichtung. Klick auf einen Spieler = als festes Ziel wählen.</p>
+    </div>
+  </aside>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

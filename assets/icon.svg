@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16244a"/>
+      <stop offset="1" stop-color="#05070d"/>
+    </linearGradient>
+    <radialGradient id="planet" cx="0.36" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="#d6f7ff"/>
+      <stop offset="0.42" stop-color="#4de2ff"/>
+      <stop offset="1" stop-color="#0d4f78"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4de2ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#4de2ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <g fill="#ffffff" opacity="0.5">
+    <circle cx="240" cy="240" r="5"/><circle cx="560" cy="170" r="4"/><circle cx="860" cy="600" r="5"/>
+    <circle cx="170" cy="560" r="4"/><circle cx="640" cy="860" r="5"/><circle cx="420" cy="880" r="3"/>
+    <circle cx="880" cy="420" r="3"/><circle cx="330" cy="420" r="3"/>
+  </g>
+  <circle cx="500" cy="540" r="270" fill="url(#glow)"/>
+  <!-- Flugbahn: vom Schützen unten links um den Planeten herum zum Ziel oben rechts -->
+  <path d="M 250 790 C 330 720, 360 700, 330 600 C 300 480, 380 330, 540 320 C 680 312, 730 300, 770 262"
+        fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-dasharray="1 40" opacity="0.95"/>
+  <circle cx="500" cy="545" r="150" fill="url(#planet)"/>
+  <ellipse cx="500" cy="545" rx="250" ry="70" fill="none" stroke="#ffb547" stroke-width="20" transform="rotate(-22 500 545)"/>
+  <!-- Schütze -->
+  <circle cx="250" cy="790" r="30" fill="#4de2ff"/>
+  <!-- Ziel mit Fadenkreuz -->
+  <g transform="translate(780 252)" stroke="#ff5470" stroke-width="14" stroke-linecap="round" fill="none">
+    <circle r="54"/>
+    <line x1="0" y1="-86" x2="0" y2="-66"/><line x1="0" y1="66" x2="0" y2="86"/>
+    <line x1="-86" y1="0" x2="-66" y2="0"/><line x1="66" y1="0" x2="86" y2="0"/>
+    <circle r="16" fill="#ff5470" stroke="none"/>
+  </g>
+</svg>

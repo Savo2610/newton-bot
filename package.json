@@ -1,0 +1,31 @@
+{
+  "name": "newton-bot",
+  "version": "1.0.0",
+  "description": "Aimbot und Control Panel für NewtonWars: rekonstruiert die Planeten aus den Flugbahnen und trifft per exakter Physik-Simulation.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/supervisor.js",
+    "app": "bash scripts/build-app.sh",
+    "app:install": "bash scripts/build-app.sh --install",
+    "app:zip": "bash scripts/build-app.sh --zip",
+    "test:mapper": "node tools/test-mapper.js",
+    "test:aim": "node tools/test-aim.js"
+  },
+  "license": "MIT",
+  "author": "Savo2610",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Savo2610/newton-bot.git"
+  },
+  "homepage": "https://github.com/Savo2610/newton-bot#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "newtonwars",
+    "aimbot",
+    "gravity",
+    "bot",
+    "chaos"
+  ]
+}
